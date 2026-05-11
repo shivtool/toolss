@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Attendance Register</title>
+<meta name="description" content="School Student Attendance and Fees Register — Track daily attendance, generate monthly reports and print registers.">
+<meta name="theme-color" content="#2c3e50">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;700&family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1a2e;
+  --paper: #fefdf8;
+  --ruled: #011a4a;
+  --accent: #c0392b;
+  --accent2: #2980b9;
+  --present: #27ae60;
+  --absent: #e74c3c;
+  --leave: #f39c12;
+  --sunday: #8e44ad;
+  --header-bg: #0d624b;
+  --row-alt: #f8f7f0;
+  --gold: #d4ac0d;
+  --shadow: rgba(238, 95, 95, 0.768);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html { overflow-x: hidden; }
+
+body {
+  font-family: 'Rajdhani', 'Noto Sans Devanagari', sans-serif;
+  background: #e8e4d4;
+  background-image: repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(0,0,0,0.04) 28px);
+  min-height: 100vh;
+  max-width: 100vw;
+  overflow-x: hidden;
+  color: var(--ink);
+}
+
+/* ===== NAV ===== */
+.topbar {
+  background: var(--header-bg);
+  padding: 0;
+  display: flex;
+  align-items: stretch;
+  box-shadow: 0 3px 15px var(--shadow);
+  position: sticky; top: 0; z-index: 1000;
+}
+.topbar .brand {
+  background: var(--accent);
+  padding: 12px 24px;
+  display: flex; align-items: center; gap: 10px;
+  font-size: 1.3rem; font-weight: 700;
+  color: #fff; letter-spacing: 1px;
+  white-space: nowrap;
+}
+.topbar .brand span { font-size: 1.6rem; }
+.nav-tabs { display: flex; flex:1; }
+.nav-tab {
+  padding: 0 22px;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.95rem; font-weight: 600;
+  color: rgba(255,255,255,0.7);
+  cursor: pointer; border: none; background: none;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s; letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+.nav-tab:hover { color: #fff; background: rgba(255,255,255,0.05); }
+.nav-tab.active { color: #fff; border-bottom-color: var(--gold); background: rgba(255,255,255,0.08); }
+.nav-tab .icon { font-size: 1.1rem; }
+
+/* ===== PAGES ===== */
+.page { display: none; padding: 28px 20px; width: 100%; max-width: 100%; margin: 0 auto; box-sizing: border-box; }
+.page.active { display: block; animation: fadeIn 0.8s ease; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+
+.page-title {
+  font-size: 1.6rem; font-weight: 700; color: var(--header-bg);
+  border-left: 4px solid var(--accent);
+  padding-left: 14px; margin-bottom: 24px;
+  display: flex; align-items: center; gap: 12px;
+}
+
+/* ===== CARDS ===== */
+.card {
+  background: var(--paper);
+  border: 4px solid var(--ruled);
+  border-radius: 6px;
+  box-shadow: 0 4px 14px var(--shadow);
+  overflow: hidden; margin-bottom: 24px;
+}
+#page-attendance .card { overflow: clip; border-radius: 6px; }
+#page-attendance .att-header { border-radius: 6px 6px 0 0; }
+#page-attendance #att-body { overflow: auto; border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; }
+.card-head {
+  background: var(--header-bg);
+  color: #f4d10c; padding: 12px 20px;
+  font-size: 1rem; font-weight: 600;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card-body { padding: 20px; }
+
+/* ===== FORMS ===== */
+.form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 16px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-group label { font-size: 0.82rem; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
+.form-group input, .form-group select {
+  padding: 9px 12px; border: 1.5px solid #ccc;
+  border-radius: 4px; font-family: inherit; font-size: 0.95rem;
+  background: #fff; color: var(--ink);
+  transition: border-color 0.2s;
+}
+.form-group input:focus, .form-group select:focus {
+  outline: none; border-color: var(--accent2);
+  box-shadow: 0 0 0 3px rgba(41,128,185,0.12);
+}
+
+.btn {
+  padding: 9px 20px; border: none; border-radius: 4px;
+  font-family: inherit; font-size: 0.95rem; font-weight: 600;
+  cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #a93226; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(192,57,43,0.3); }
+.btn-secondary { background: var(--accent2); color: #fff; }
+.btn-secondary:hover { background: #2471a3; }
+.btn-success { background: var(--present); color: #fff; }
+.btn-warning { background: var(--leave); color: #fff; }
+.btn-sm { padding: 5px 12px; font-size: 0.85rem; }
+.btn-outline { background: transparent; border: 1.5px solid var(--accent); color: var(--accent); }
+.btn-outline:hover { background: var(--accent); color: #fff; }
+
+/* ===== TABLES ===== */
+.table-wrap { overflow-x: auto; overflow-y: auto; max-height: 480px; width: 100%; display: block; -webkit-overflow-scrolling: touch; }
+/* Sticky header inside scrollable table-wrap */
+.table-wrap thead th { position: sticky; top: 0; z-index: 5; }
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+th {
+  background: var(--header-bg); color: #f3c2c2;
+  padding: 9px 8px; text-align: center;
+  font-weight: 600; font-size: 0.82rem;
+  white-space: nowrap; border: 1px solid #3d5166;
+}
+td {
+  padding: 8px 8px; text-align: center;
+  border: 1px solid #ddd; vertical-align: middle;
+}
+tr:nth-child(even) td { background: var(--row-alt); }
+tr:hover td { background: #eef4fb; }
+
+.badge {
+  display: inline-block; padding: 2px 8px;
+  border-radius: 3px; font-size: 0.78rem; font-weight: 600;
+}
+.badge-P { background: #d5f5e3; color: var(--present); }
+.badge-A { background: #fadbd8; color: var(--absent); }
+.badge-L { background: #fdebd0; color: var(--leave); }
+.badge-S { background: #e8daef; color: var(--sunday); }
+.badge-H { background: #f0e6ff; color: var(--sunday); }
+
+/* ===== ATTENDANCE MARK ===== */
+.att-header {
+  display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+  padding: 12px 16px; background: #f0f4f8;
+  border-bottom: 1px solid var(--ruled); margin-bottom: 0;
+  box-sizing: border-box; width: 100%;
+}
+.att-student-row {
+  display: flex; align-items: center;
+  padding: 10px 14px; border-bottom: 1px solid #eee;
+  gap: 14px; transition: background 0.15s;
+}
+.att-student-row:hover { background: #f5f8fd; }
+.att-student-row .roll { 
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--header-bg); color: #fff;
+  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; font-size: 0.8rem; font-weight: 600; flex-shrink:0;
+}
+.att-student-row .name { flex:1; font-weight: 600; font-size: 0.95rem; }
+
+.date-grid {
+  display: flex; gap: 4px; flex-wrap: wrap;
+  margin-top: 2px;
+}
+.date-cell {
+  position: relative;
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 4px; cursor: pointer;
+  font-size: 0.80rem; font-weight: 600;
+  border: 1.5px solid #1a1616;
+  transition: all 0.15s;
+  background: #fff;
+  user-select: none;
+}
+.date-cell:hover { border-color: var(--accent2); transform: scale(1.08); }
+.date-cell.sun { background: #f9ecff; color: var(--sunday); border-color: #d7bde2; }
+.date-cell.P { background: #d5f5e3; color: var(--present); border-color: #a9dfbf; }
+.date-cell.A { background: #fadbd8; color: var(--absent); border-color: #f1948a; }
+.date-cell.L { background: #fdebd0; color: var(--leave); border-color: #f8c471; }
+.date-cell.H { background: #e8daef; color: var(--sunday); border-color: #c39bd3; }
+.date-cell.future { opacity: 0.4; cursor: not-allowed; }
+
+/* Dropdown - fixed position, body-level */
+.att-dropdown {
+  position: fixed;
+  background: #fff; border: 1.5px solid #ccc;
+  border-radius: 8px; box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+  z-index: 9000; min-width: 150px;
+  overflow: hidden;
+  animation: dropIn 0.15s ease;
+}
+@keyframes dropIn { from { opacity:0; transform:translateY(-6px) scale(0.96); } to { opacity:1; transform:none; } }
+.att-dropdown-item {
+  padding: 9px 14px; cursor: pointer;
+  font-size: 0.88rem; font-weight: 600;
+  display: flex; align-items: center; gap: 8px;
+  transition: background 0.12s;
+}
+.att-dropdown-item:hover { background: #f0f4f8; }
+.att-dropdown-item .dot {
+  width: 10px; height: 10px; border-radius: 50%;
+}
+.dot-P { background: var(--present); }
+.dot-A { background: var(--absent); }
+.dot-L { background: var(--leave); }
+.dot-H { background: var(--sunday); }
+.dot-clear { background: #ccc; }
+
+/* ===== STATS ===== */
+.stat-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+.stat-card {
+  flex: 1; min-width: 140px;
+  background: var(--paper); border: 1px solid var(--ruled);
+  border-radius: 6px; padding: 16px 20px;
+  text-align: center; box-shadow: 0 2px 8px var(--shadow);
+}
+.stat-card .num {
+  font-size: 2rem; font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+}
+.stat-card .lbl { font-size: 0.78rem; color: #666; font-weight: 600; text-transform: uppercase; margin-top: 4px; }
+.c-green { color: var(--present); }
+.c-red { color: var(--absent); }
+.c-blue { color: var(--accent2); }
+.c-orange { color: var(--leave); }
+
+/* ===== REPORT TABLE ===== */
+.report-wrap { overflow-x: auto; width: 100%; display: block; -webkit-overflow-scrolling: touch; }
+.reg-table { border-collapse: collapse; min-width: 900px; }
+.reg-table th {
+  background: var(--header-bg); color: #fff;
+  padding: 7px 6px; font-size: 0.78rem;
+  border: 1px solid #3d5166; text-align: center;
+  white-space: nowrap;
+}
+.reg-table td {
+  padding: 6px 5px; border: 1px solid #ccc;
+  text-align: center; font-size: 0.82rem; vertical-align: middle;
+}
+.reg-table .col-name { text-align: left; padding-left: 10px; font-weight: 600; white-space: nowrap; }
+.reg-table .col-roll { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+.reg-table td.P { background: #d5f5e3; color: var(--present); font-weight: 700; }
+.reg-table td.A { background: #fadbd8; color: var(--absent); font-weight: 700; }
+.reg-table td.L { background: #fdebd0; color: var(--leave); font-weight: 700; }
+.reg-table td.S { background: #f9ecff; color: var(--sunday); font-weight: 700; }
+.reg-table td.H { background: #e8daef; color: var(--sunday); font-weight: 700; }
+.reg-table td.blank { background: #f8f8f8; color: #ccc; }
+.reg-table .total-col { background: #eaf4fb; font-weight: 700; color: var(--accent2); }
+.reg-table .pct-col { background: #e8f8f5; font-weight: 700; color: var(--present); }
+.reg-table .pct-col.low { background: #fadbd8; color: var(--absent); }
+.reg-table .pct-col.medium { background: #fdebd0; color: var(--leave); }
+.reg-table tr:last-child td { background: #fffde7; font-weight: 700; }
+
+/* ===== PRINT ===== */
+@media print {
+  body { background: #fff !important; margin: 0; padding: 0; }
+  /* Hide everything */
+  .topbar, .no-print, .att-dropdown,
+  #page-schools, #page-classes, #page-students, #page-attendance,
+  .page-title, #toast { display: none !important; }
+  /* Only show report page */
+  #page-report { display: block !important; padding: 0 !important; max-width: 100% !important; }
+  #page-report .no-print { display: none !important; }
+  #page-report .card.no-print { display: none !important; }
+  .print-header { display: block !important; }
+  #report-output { display: block !important; }
+  #report-output > div { box-shadow: none !important; border: none !important; }
+  #report-output .card { box-shadow: none !important; border: 1px solid #ccc !important; }
+  .scroll-hint { display: none !important; }
+  @page { size: A4 landscape; margin: 8mm 6mm; }
+  .reg-table { font-size: 6.5pt; }
+  .reg-table th, .reg-table td { padding: 2px 3px; }
+  .report-wrap { overflow: visible !important; }
+  .stat-card { min-width: 80px; padding: 8px 10px; }
+  .stat-card .num { font-size: 1.2rem; }
+}
+.print-header { display: none; text-align: center; margin-bottom: 12px; }
+.print-header h2 { font-size: 14pt; font-weight: 700; }
+.print-header p { font-size: 9pt; color: #333; margin-top: 3px; }
+
+/* ===== MONTH TABS ===== */
+.month-tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 16px; }
+.month-tab {
+  padding: 5px 14px; border: 1.5px solid #ccc;
+  border-radius: 20px; cursor: pointer;
+  font-size: 0.85rem; font-weight: 600;
+  background: #fff; transition: all 0.2s;
+}
+.month-tab.active { background: var(--header-bg); color: #fff; border-color: var(--header-bg); }
+
+/* scroll hint */
+.scroll-hint { font-size: 0.78rem; color: #888; margin-bottom: 6px; text-align: right; }
+
+/* empty state */
+.empty-state {
+  text-align: center; padding: 48px 20px; color: #aaa;
+}
+.empty-state .ei { font-size: 3rem; margin-bottom: 10px; }
+.empty-state p { font-size: 1rem; }
+
+/* toast */
+#toast {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+  background: #2c3e50; color: #fff; padding: 10px 24px;
+  border-radius: 24px; font-weight: 600; font-size: 0.9rem;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  z-index: 9999; display: none;
+  animation: toastIn 0.3s ease;
+}
+@keyframes toastIn { from { opacity:0; transform: translateX(-50%) translateY(10px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span>📚</span> विद्यालय पंजी <small style="font-size:0.65rem;opacity:0.7;font-weight:400;margin-left:4px">v2.0</small></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" data-page="schools" onclick="goto('schools')"><span class="icon">🏫</span> Schools</button>
+    <button class="nav-tab" data-page="classes" onclick="goto('classes')"><span class="icon">🏷️</span> Classes</button>
+    <button class="nav-tab" data-page="students" onclick="goto('students')"><span class="icon">👤</span> Students</button>
+    <button class="nav-tab" data-page="attendance" onclick="goto('attendance')"><span class="icon">✅</span> Attendance</button>
+    <button class="nav-tab" data-page="report" onclick="goto('report')"><span class="icon">📊</span> Report & Print</button>
+  </div>
+</div>
+
+<!-- ============ SCHOOLS PAGE ============ -->
+<div class="page active" id="page-schools">
+  <div class="page-title">🏫 Manage Schools</div>
+  <div class="card" style="max-width:560px">
+    <div class="card-head">Add New School</div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-group" style="grid-column:1/-1">
+          <label>School Name</label>
+          <input id="s-name" placeholder="e.g. SHIV COMPUTER" />
+        </div>
+        <div class="form-group">
+          <label>City / District</label>
+          <input id="s-city" placeholder="e.g. Karanpur Suratganj 22xxxx" />
+        </div>
+        <div class="form-group">
+          <label>Board</label>
+          <select id="s-board">
+            <option>CBSE</option><option>ICSE</option><option>UP Board</option><option>State Board</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="margin-top:18px" onclick="addSchool()">➕ Add School</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head">All Schools <span id="school-count" style="background:rgba(255,255,255,0.2);padding:2px 10px;border-radius:12px;font-size:0.85rem;">0</span>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3)" onclick="exportData()" title="Backup all data">💾 Backup</button>
+        <label class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);cursor:pointer" title="Restore from backup">📂 Restore<input type="file" accept=".json" style="display:none" onchange="restoreData(this)"></label>
+      </div>
+    </div>
+    <div class="card-body" style="padding:0">
+      <div id="school-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ CLASSES PAGE ============ -->
+<div class="page" id="page-classes">
+  <div class="page-title">🏷️ Manage Classes</div>
+  <div class="card" style="max-width:600px">
+    <div class="card-head">Add New Class</div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>School</label>
+          <select id="c-school"></select>
+        </div>
+        <div class="form-group">
+          <label>Class Name</label>
+          <input id="c-name" placeholder="e.g. 10th" />
+        </div>
+        <div class="form-group">
+          <label>Section</label>
+          <input id="c-section" placeholder="e.g. A" />
+        </div>
+        <div class="form-group">
+          <label>Fee Rate (₹/month)</label>
+          <input id="c-fee" type="number" placeholder="500" />
+        </div>
+      </div>
+      <button class="btn btn-primary" style="margin-top:18px" onclick="addClass()">➕ Add Class</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head">All Classes</div>
+    <div class="card-body" style="padding:0">
+      <div id="class-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ STUDENTS PAGE ============ -->
+<div class="page" id="page-students">
+  <div class="page-title">👤 Manage Students</div>
+  <div class="card" style="max-width:640px">
+    <div class="card-head">Add Student</div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>School</label>
+          <select id="st-school" onchange="fillStClasses()"></select>
+        </div>
+        <div class="form-group">
+          <label>Class</label>
+          <select id="st-class"></select>
+        </div>
+        <div class="form-group">
+          <label>Roll No</label>
+          <input id="st-roll" type="number" placeholder="1" />
+        </div>
+        <div class="form-group">
+          <label>Student Name (पूरा नाम)</label>
+          <input id="st-name" placeholder="Full Name" />
+        </div>
+        <div class="form-group">
+          <label>Father's Name</label>
+          <input id="st-father" placeholder="Father's Name" />
+        </div>
+        <div class="form-group">
+          <label>S.R. No</label>
+          <input id="st-sr" placeholder="SR Number" />
+        </div>
+      </div>
+      <button class="btn btn-primary" style="margin-top:18px" onclick="addStudent()">➕ Add Student</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head">Student List
+      <div style="display:flex;gap:8px;align-items:center">
+        <select id="filter-school-st" onchange="filterStudents()" style="padding:5px 10px;border-radius:4px;border:1px solid #555;background:#3d5166;color:#fff;font-size:0.85rem">
+          <option value="">All Schools</option>
+        </select>
+        <select id="filter-class-st" onchange="filterStudents()" style="padding:5px 10px;border-radius:4px;border:1px solid #555;background:#3d5166;color:#fff;font-size:0.85rem">
+          <option value="">All Classes</option>
+        </select>
+      </div>
+    </div>
+    <div class="card-body" style="padding:0">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Roll</th><th>SR No</th><th>Student Name</th>
+              <th>Father's Name</th><th>Class</th><th>School</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="student-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ATTENDANCE PAGE ============ -->
+<div class="page" id="page-attendance">
+  <div class="page-title">✅ Mark Attendance</div>
+  <div class="card">
+    <div class="att-header">
+      <div class="form-group" style="min-width:160px">
+        <label>School</label>
+        <select id="att-school" onchange="fillAttClasses()"></select>
+      </div>
+      <div class="form-group" style="min-width:140px">
+        <label>Class</label>
+        <select id="att-class" onchange="loadAttStudents()"></select>
+      </div>
+      <div class="form-group" style="min-width:120px">
+        <label>Month</label>
+        <select id="att-month" onchange="loadAttStudents()"></select>
+      </div>
+      <div class="form-group" style="min-width:100px">
+        <label>Year</label>
+        <select id="att-year" onchange="loadAttStudents()"></select>
+      </div>
+      <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+        <button class="btn btn-success btn-sm" onclick="markAll('P')">✔ All Present</button>
+        <button class="btn btn-warning btn-sm" onclick="markAll('L')">📋 All Leave</button>
+        <button class="btn btn-sm" style="background:#34495e;color:#fff" onclick="shiftMonth(-1)">◀ Prev Month</button>
+        <button class="btn btn-sm" style="background:#34495e;color:#fff" onclick="shiftMonth(1)">Next Month ▶</button>
+      </div>
+    </div>
+    <div style="padding:12px 16px 8px;display:flex;align-items:center;gap:12px;background:#fafafa;border-bottom:1px solid #eee;flex-wrap:wrap;overflow:hidden;box-sizing:border-box;">
+      <b style="font-size:0.82rem;color:#555">LEGEND:</b>
+      <span class="badge badge-P">P = Present</span>
+      <span class="badge badge-A">A = Absent</span>
+      <span class="badge badge-L">L = Leave</span>
+      <span class="badge badge-S">S = Sunday</span>
+      <span class="badge badge-H">H = Holiday</span>
+      <span style="font-size:0.8rem;color:#888;margin-left:auto">🖱️ Click on date to mark attendance</span>
+    </div>
+    <div id="att-body">
+      <div class="empty-state"><div class="ei">📋</div><p>Select School, Class & Month to mark attendance</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ REPORT PAGE ============ -->
+<div class="page" id="page-report">
+  <div class="page-title no-print">📊 Attendance Report & Print</div>
+  
+  <!-- Print header (only shows on print) -->
+  <div class="print-header" id="print-header">
+    <h2 id="ph-school">School Name</h2>
+    <p id="ph-class">Class: — | Section: — | Month: — | Year: —</p>
+    <p style="font-size:8pt;margin-top:2px">ATTENDANCE & FEES REGISTER</p>
+    <hr style="margin:6px 0">
+  </div>
+
+  <div class="card no-print" style="max-width:700px">
+    <div class="card-head">Report Filters</div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>School</label>
+          <select id="rpt-school" onchange="fillRptClasses()"></select>
+        </div>
+        <div class="form-group">
+          <label>Class</label>
+          <select id="rpt-class"></select>
+        </div>
+        <div class="form-group">
+          <label>Month</label>
+          <select id="rpt-month"></select>
+        </div>
+        <div class="form-group">
+          <label>Year</label>
+          <select id="rpt-year"></select>
+        </div>
+        <div class="form-group">
+          <label>Previous Month</label>
+          <select id="rpt-prev-month"></select>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
+        <button class="btn btn-secondary" onclick="generateReport()">📊 Generate Report</button>
+        <button class="btn btn-primary" onclick="printReport()">🖨️ Print A4</button>
+        <button class="btn btn-outline" onclick="exportData()">💾 Backup Data</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="report-output"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ======================================================
+// DATA STORE
+// ======================================================
+let DB = {
+  schools: [],
+  classes: [],
+  students: [],
+  attendance: {} // key: classId_YYYY_MM_studentId -> status
+};
+
+// Load from localStorage
+function loadDB() {
+  try { const d = localStorage.getItem('attDB'); if(d) DB = JSON.parse(d); } catch(e){}
+}
+function saveDB() {
+  localStorage.setItem('attDB', JSON.stringify(DB));
+}
+loadDB();
+
+// ======================================================
+// UTILS
+// ======================================================
+const MONTHS = ['January','February','March','April','May','June',
+  'July','August','September','October','November','December'];
+const MONTHS_HI = ['जनवरी','फरवरी','मार्च','अप्रैल','मई','जून',
+  'जुलाई','अगस्त','सितम्बर','अक्टूबर','नवम्बर','दिसम्बर'];
+
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.style.display = 'none';
+  // Force reflow to restart animation
+  void t.offsetWidth;
+  t.textContent = msg; t.style.display = 'block';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.display = 'none'; }, 2400);
+}
+
+function getDaysInMonth(y, m) { return new Date(y, m+1, 0).getDate(); }
+function getDayOfWeek(y, m, d) { return new Date(y, m, d).getDay(); } // 0=Sun
+
+// key format: classId|year|month|day|studentId
+function attKey(classId, year, month, day, studentId) {
+  return `${classId}|${year}|${month}|${day}|${studentId}`;
+}
+
+function getAttVal(classId, year, month, day, studentId) {
+  return DB.attendance[attKey(classId, year, month, day, studentId)] || '';
+}
+
+function setAttVal(classId, year, month, day, studentId, val) {
+  const k = attKey(classId, year, month, day, studentId);
+  if(val === '') { delete DB.attendance[k]; } else { DB.attendance[k] = val; }
+  saveDB();
+}
+
+// ======================================================
+// NAVIGATION
+// ======================================================
+function goto(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => {
+    t.classList.remove('active');
+    if(t.dataset.page === page) t.classList.add('active');
+  });
+  document.getElementById('page-'+page).classList.add('active');
+  if(page==='classes') fillSchoolSelects(['c-school']);
+  if(page==='students') { fillSchoolSelects(['st-school','filter-school-st']); fillStClasses(); renderStudents(); }
+  if(page==='attendance') { fillSchoolSelects(['att-school']); fillAttClasses(); }
+  if(page==='report') { fillSchoolSelects(['rpt-school']); fillRptClasses(); fillMonthYearSelects(); }
+  renderSchools(); renderClasses();
+}
+
+function fillSchoolSelects(ids) {
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    const prev = el.value;
+    el.innerHTML = DB.schools.length === 0 
+      ? '<option value="">-- No School --</option>'
+      : DB.schools.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    if(prev) el.value = prev;
+  });
+}
+
+function fillMonthYearSelects() {
+  const now = new Date();
+  const curY = now.getFullYear(); const curM = now.getMonth();
+
+  // Month selects — only set default if no value yet
+  ['att-month','rpt-month','rpt-prev-month'].forEach(id => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    const prev = el.value;
+    el.innerHTML = MONTHS.map((m,i) => `<option value="${i}">${m} (${MONTHS_HI[i]})</option>`).join('');
+    if(prev !== '' && prev !== null && el.querySelector(`option[value="${prev}"]`)) {
+      el.value = prev;
+    } else {
+      if(id === 'rpt-prev-month') el.value = curM === 0 ? 11 : curM - 1;
+      else el.value = curM;
+    }
+  });
+
+  // Year selects — only set default if no value yet
+  ['att-year','rpt-year'].forEach(id => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    const prev = el.value;
+    el.innerHTML = [curY-2,curY-1,curY,curY+1].map(y => `<option value="${y}">${y}</option>`).join('');
+    if(prev && el.querySelector(`option[value="${prev}"]`)) el.value = prev;
+    else el.value = curY;
+  });
+}
+
+// ======================================================
+// SCHOOLS
+// ======================================================
+function addSchool() {
+  const name = document.getElementById('s-name').value.trim();
+  const city = document.getElementById('s-city').value.trim();
+  const board = document.getElementById('s-board').value;
+  if(!name) { toast('❌ School name required'); return; }
+  DB.schools.push({ id: genId(), name, city, board });
+  saveDB();
+  document.getElementById('s-name').value = '';
+  document.getElementById('s-city').value = '';
+  renderSchools();
+  toast('✅ School added!');
+}
+
+function removeSchool(id) {
+  if(!confirm('Delete school? This will remove all related data.')) return;
+  DB.schools = DB.schools.filter(s => s.id !== id);
+  DB.classes = DB.classes.filter(c => c.schoolId !== id);
+  const remainingClassIds = new Set(DB.classes.map(c => c.id));
+  DB.students = DB.students.filter(s => remainingClassIds.has(s.classId));
+  saveDB(); renderSchools(); renderClasses(); renderStudents();
+  fillSchoolSelects(['c-school','st-school','filter-school-st','att-school','rpt-school']);
+  toast('🗑️ School deleted successfully');
+}
+
+function renderSchools() {
+  const el = document.getElementById('school-list');
+  document.getElementById('school-count').textContent = DB.schools.length;
+  if(!DB.schools.length) {
+    el.innerHTML = '<div class="empty-state"><div class="ei">🏫</div><p>No schools added yet</p></div>';
+    return;
+  }
+  el.innerHTML = '<div class="table-wrap"><table><thead><tr><th>#</th><th>School Name</th><th>City / District</th><th>Board</th><th>Classes</th><th>Students</th><th>Action</th></tr></thead><tbody>' +
+    DB.schools.map((s,i) => {
+      const cls = DB.classes.filter(c => c.schoolId === s.id).length;
+      const sts = DB.students.filter(st => st.schoolId === s.id).length;
+      return `<tr><td>${i+1}</td><td style="text-align:left;font-weight:600">${s.name}</td><td>${s.city||'-'}</td><td><span style="background:#e8f4fd;color:#1a5276;padding:2px 8px;border-radius:4px;font-size:0.82rem">${s.board||'-'}</span></td><td><span style="background:#e3f2fd;color:#1565c0;padding:2px 8px;border-radius:12px;font-weight:700">${cls}</span></td><td><span style="background:#e8f5e9;color:#2e7d32;padding:2px 8px;border-radius:12px;font-weight:700">${sts}</span></td><td><button class="btn btn-sm btn-outline" onclick="removeSchool('${s.id}')">🗑 Delete</button></td></tr>`;
+    }).join('') + '</tbody></table></div>';
+}
+
+// ======================================================
+// CLASSES
+// ======================================================
+function addClass() {
+  const schoolId = document.getElementById('c-school').value;
+  const name = document.getElementById('c-name').value.trim();
+  const section = document.getElementById('c-section').value.trim();
+  const fee = document.getElementById('c-fee').value;
+  if(!schoolId || !name) { toast('❌ School & Class name required'); return; }
+  DB.classes.push({ id: genId(), schoolId, name, section, fee: fee||0 });
+  saveDB();
+  document.getElementById('c-name').value = '';
+  document.getElementById('c-section').value = '';
+  document.getElementById('c-fee').value = '';
+  renderClasses();
+  toast('✅ Class added!');
+}
+
+function removeClass(id) {
+  if(!confirm('Delete class? All students in this class will also be removed.')) return;
+  DB.classes = DB.classes.filter(c => c.id !== id);
+  DB.students = DB.students.filter(s => s.classId !== id);
+  saveDB(); renderClasses(); renderStudents();
+  toast('🗑️ Class deleted');
+}
+
+function renderClasses() {
+  const el = document.getElementById('class-list');
+  if(!el) return;
+  if(!DB.classes.length) {
+    el.innerHTML = '<div class="empty-state"><div class="ei">🏷️</div><p>No classes added yet</p></div>';
+    return;
+  }
+  el.innerHTML = '<div class="table-wrap"><table><thead><tr><th>#</th><th>School</th><th>Class</th><th>Section</th><th>Fee Rate</th><th>Students</th><th>Action</th></tr></thead><tbody>' +
+    DB.classes.map((c,i) => {
+      const sch = DB.schools.find(s => s.id === c.schoolId);
+      const sts = DB.students.filter(s => s.classId === c.id).length;
+      return `<tr><td>${i+1}</td><td style="text-align:left">${sch?sch.name:'-'}</td><td style="font-weight:700">${c.name}</td><td>${c.section||'-'}</td><td>₹${c.fee||0}</td><td><span style="background:#e8f5e9;color:#2e7d32;padding:2px 8px;border-radius:12px;font-weight:700">${sts}</span></td><td><button class="btn btn-sm btn-outline" onclick="removeClass('${c.id}')">🗑 Delete</button></td></tr>`;
+    }).join('') + '</tbody></table></div>';
+}
+
+// ======================================================
+// STUDENTS
+// ======================================================
+function fillStClasses() {
+  const schoolId = document.getElementById('st-school').value;
+  const el = document.getElementById('st-class');
+  const cls = DB.classes.filter(c => c.schoolId === schoolId);
+  el.innerHTML = cls.length ? cls.map(c => `<option value="${c.id}">${c.name}${c.section?' - '+c.section:''}</option>`).join('') : '<option value="">-- No Class --</option>';
+}
+
+function fillAttClasses() {
+  const schoolId = document.getElementById('att-school').value;
+  const el = document.getElementById('att-class');
+  const cls = DB.classes.filter(c => c.schoolId === schoolId);
+  el.innerHTML = cls.length ? cls.map(c => `<option value="${c.id}">${c.name}${c.section?' - '+c.section:''}</option>`).join('') : '<option value="">-- No Class --</option>';
+  loadAttStudents();
+}
+
+function fillRptClasses() {
+  const schoolId = document.getElementById('rpt-school').value;
+  const el = document.getElementById('rpt-class');
+  const cls = DB.classes.filter(c => c.schoolId === schoolId);
+  el.innerHTML = cls.length ? cls.map(c => `<option value="${c.id}">${c.name}${c.section?' - '+c.section:''}</option>`).join('') : '<option value="">-- No Class --</option>';
+}
+
+function filterStudents() {
+  const fSchool = document.getElementById('filter-school-st').value;
+  // update class filter first
+  const el = document.getElementById('filter-class-st');
+  const cls = fSchool ? DB.classes.filter(c => c.schoolId === fSchool) : DB.classes;
+  el.innerHTML = '<option value="">All Classes</option>' + cls.map(c => `<option value="${c.id}">${c.name}${c.section?' - '+c.section:''}</option>`).join('');
+  // Read fClass AFTER DOM update
+  const fClass = el.value;
+  renderStudents(fSchool, fClass);
+}
+
+function addStudent() {
+  const classId = document.getElementById('st-class').value;
+  const roll = document.getElementById('st-roll').value.trim();
+  const name = document.getElementById('st-name').value.trim();
+  const father = document.getElementById('st-father').value.trim();
+  const sr = document.getElementById('st-sr').value.trim();
+  if(!classId || !name) { toast('❌ Class & Name required'); return; }
+  // Check duplicate roll
+  if(roll && DB.students.find(s => s.classId === classId && s.roll == roll)) {
+    toast('❌ Roll number already exists in this class'); return;
+  }
+  const cls = DB.classes.find(c => c.id === classId);
+  const schoolId = cls ? cls.schoolId : '';
+  DB.students.push({ id: genId(), classId, schoolId, roll: roll||'', name, father, sr });
+  // Sort by roll
+  DB.students.sort((a,b) => (parseInt(a.roll)||999) - (parseInt(b.roll)||999));
+  saveDB();
+  document.getElementById('st-name').value = '';
+  document.getElementById('st-father').value = '';
+  document.getElementById('st-sr').value = '';
+  document.getElementById('st-roll').value = '';
+  renderStudents();
+  toast('✅ Student added!');
+}
+
+function removeStudent(id) {
+  if(!confirm('Remove student?')) return;
+  DB.students = DB.students.filter(s => s.id !== id);
+  saveDB(); renderStudents();
+}
+
+function renderStudents(fSchool, fClass) {
+  const tbody = document.getElementById('student-tbody');
+  let sts = [...DB.students];
+  if(fSchool) sts = sts.filter(s => s.schoolId === fSchool);
+  if(fClass) sts = sts.filter(s => s.classId === fClass);
+  if(!sts.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:#aaa">No students found</td></tr>';
+    return;
+  }
+  tbody.innerHTML = sts.map(s => {
+    const cls = DB.classes.find(c => c.id === s.classId);
+    const sch = DB.schools.find(sc => sc.id === s.schoolId);
+    return `<tr>
+      <td><span style="font-family:JetBrains Mono,monospace;font-weight:700">${s.roll||'-'}</span></td>
+      <td>${s.sr||'-'}</td>
+      <td style="text-align:left;font-weight:600;padding-left:12px">${s.name}</td>
+      <td style="text-align:left">${s.father||'-'}</td>
+      <td>${cls?cls.name+(cls.section?' - '+cls.section:''):'-'}</td>
+      <td style="text-align:left">${sch?sch.name:'-'}</td>
+      <td><button class="btn btn-sm btn-outline" onclick="removeStudent('${s.id}')">🗑</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ======================================================
+// ATTENDANCE
+// ======================================================
+let openDropdown = null;
+
+function fixAgOuterWidth() {
+  const agWrap = document.getElementById('ag-wrap');
+  if(!agWrap) return;
+  agWrap.style.width = '';
+  const parent = agWrap.parentElement;
+  if(parent) {
+    const parentW = parent.getBoundingClientRect().width;
+    if(parentW > 0) agWrap.style.width = parentW + 'px';
+  }
+}
+
+function loadAttStudents() {
+  const classId = document.getElementById('att-class').value;
+  const month = parseInt(document.getElementById('att-month').value);
+  const year = parseInt(document.getElementById('att-year').value);
+  const body = document.getElementById('att-body');
+
+  if(!classId) {
+    body.innerHTML = '<div class="empty-state"><div class="ei">📋</div><p>Select a class to mark attendance</p></div>';
+    return;
+  }
+
+  const students = DB.students.filter(s => s.classId === classId);
+  if(!students.length) {
+    body.innerHTML = '<div class="empty-state"><div class="ei">👤</div><p>No students in this class. <a href="#" onclick="goto(\'students\')">Add students first</a></p></div>';
+    return;
+  }
+
+  const days = getDaysInMonth(year, month);
+
+  // Auto-mark Sundays (only if not already set)
+  students.forEach(s => {
+    for(let d=1; d<=days; d++) {
+      if(getDayOfWeek(year, month, d) === 0) {
+        if(!getAttVal(classId, year, month, d, s.id)) {
+          setAttVal(classId, year, month, d, s.id, 'S');
+        }
+      }
+    }
+  });
+
+  // ---- FIXED-PIXEL APPROACH: perfectly aligned columns ----
+  // Fixed widths: roll=40px, name=150px, each day cell=32px
+  // Total = 40 + 150 + days*32. Outer div scrolls horizontally + vertically.
+
+  const ROLL_W = 40, NAME_W = 150, CELL_W = 32, CELL_H = 32, ROW_H = 46, HEAD_H = 52;
+  const dayNames = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+  const totalW = ROLL_W + NAME_W + days * CELL_W;
+  // Use up to 60vh for the student rows area (minus header)
+  const maxAvailH = Math.max(300, Math.min(window.innerHeight * 0.60, students.length * ROW_H));
+  const now2 = new Date(); now2.setHours(0,0,0,0);
+
+  let html = `<style>
+    /* Single scroll container - handles BOTH x and y scroll */
+    #ag-wrap {
+      overflow-x: auto;
+      overflow-y: auto;
+      max-height: ${Math.round(maxAvailH + HEAD_H)}px;
+      width: 100%;
+      border-top: 1px solid #ddd;
+      -webkit-overflow-scrolling: touch;
+    }
+    #ag-table {
+      border-collapse: collapse;
+      width: ${totalW}px;
+      min-width: ${totalW}px;
+      table-layout: fixed;
+    }
+    /* Sticky header */
+    #ag-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: #e8f0fe;
+      border: 1px solid #dde4ee;
+      font-size: 0.72rem; font-weight: 700;
+      color: #1a3a5c;
+      text-align: center;
+      padding: 6px 2px;
+      white-space: nowrap;
+      height: ${HEAD_H}px;
+    }
+    #ag-table thead th.th-roll {
+      width: ${ROLL_W}px; background: #f0f4f8; color: #888;
+      border-right: 1px solid #dde4ee;
+      position: sticky; left: 0; z-index: 20;
+    }
+    #ag-table thead th.th-name {
+      width: ${NAME_W}px; background: #f0f4f8; color: #444;
+      text-align: left; padding-left: 8px;
+      border-right: 2px solid #aec6e8;
+      position: sticky; left: ${ROLL_W}px; z-index: 20;
+    }
+    #ag-table thead th.th-sun { background: #f0e6ff; color: #7b2fbe; }
+    #ag-table tbody tr { height: ${ROW_H}px; }
+    #ag-table tbody tr:hover td { background: #f0f6ff !important; }
+    #ag-table tbody td {
+      border: 1px solid #eee;
+      text-align: center;
+      vertical-align: middle;
+      padding: 0;
+      font-size: 0.82rem;
+    }
+    #ag-table tbody td.td-roll {
+      width: ${ROLL_W}px;
+      border-right: 1px solid #ddd;
+      position: sticky; left: 0; z-index: 5;
+      background: #f4f6fa;
+    }
+    #ag-table tbody td.td-name {
+      width: ${NAME_W}px;
+      text-align: left; padding-left: 8px;
+      font-weight: 600; font-size: 0.85rem;
+      border-right: 2px solid #d0dce8;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      max-width: ${NAME_W}px;
+      position: sticky; left: ${ROLL_W}px; z-index: 5;
+      background: #f8f9fc;
+    }
+    #ag-table tbody tr:hover td.td-roll,
+    #ag-table tbody tr:hover td.td-name { background: #e8f0fb !important; }
+    #ag-table tbody td.td-day { width: ${CELL_W}px; }
+    .roll-badge {
+      width:28px; height:28px; border-radius:50%;
+      background:#2c3e50; color:#fff;
+      display:inline-flex; align-items:center; justify-content:center;
+      font-size:0.7rem; font-weight:700;
+    }
+    .ac {
+      width:26px; height:26px; border-radius:4px;
+      display:inline-flex; align-items:center; justify-content:center;
+      font-size:0.7rem; font-weight:700;
+      border:1.5px solid #ddd; background:#fff; color:#bbb;
+      cursor:default; user-select:none; transition:transform 0.12s;
+    }
+    .ac.cp { cursor:pointer; }
+    .ac.cp:hover { transform:scale(1.15); }
+    .ac.val-P { background:#d5f5e3; color:#1a7a42; border-color:#82d8a8; }
+    .ac.val-A { background:#fadbd8; color:#c0392b; border-color:#f1948a; }
+    .ac.val-L { background:#fef9e7; color:#b7770d; border-color:#f8c471; }
+    .ac.val-S { background:#f0e6ff; color:#7b2fbe; border-color:#c9a8f0; }
+    .ac.val-H { background:#e8daef; color:#6c3483; border-color:#c39bd3; }
+    .ac.fut  { opacity:0.28; pointer-events:none; }
+    #ag-table tbody tr:nth-child(even) td { background: #f8f9fc; }
+  </style>`;
+
+  // Single scroll container: #ag-wrap handles BOTH x and y scroll
+  // Table with sticky thead for header pinning
+  html += `<div id="ag-wrap"><table id="ag-table"><thead><tr>`;
+  html += `<th class="th-roll">#</th>`;
+  html += `<th class="th-name">छात्र / Student</th>`;
+  for(let d=1; d<=days; d++){
+    const dow = getDayOfWeek(year,month,d);
+    const isSun = dow===0;
+    html += `<th${isSun?' class="th-sun"':''}>${d}<br><span style="font-size:0.58rem;opacity:0.8">${dayNames[dow]}</span></th>`;
+  }
+  html += `</tr></thead><tbody>`;
+
+  // ---- STUDENT ROWS ----
+  students.forEach(st => {
+    html += `<tr>`;
+    html += `<td class="td-roll"><span class="roll-badge">${st.roll||'?'}</span></td>`;
+    html += `<td class="td-name" title="${st.name}">${st.name}</td>`;
+    for(let d=1; d<=days; d++){
+      const dow = getDayOfWeek(year,month,d);
+      const isSun = dow===0;
+      const isFuture = new Date(year,month,d) > now2;
+      let val = getAttVal(classId,year,month,d,st.id);
+      if(isSun && !val) val='S';
+      const clickable = !isFuture && !isSun;
+      const label = val||'·';
+      const cls = ['ac', val?`val-${val}`:'', clickable?'cp':'', (isFuture&&!isSun)?'fut':''].filter(Boolean).join(' ');
+      html += `<td class="td-day"><div id="dc_${st.id}_${d}" class="${cls}"${clickable?` onclick="showDropdown('${classId}','${year}','${month}','${d}','${st.id}',this)"`:''} >${label}</div></td>`;
+    }
+    html += `</tr>`;
+  });
+  html += `</tbody></table></div>`;
+  body.innerHTML = html;
+}
+
+function showDropdown(classId, year, month, day, studentId, el) {
+  closeDropdown();
+  const rect = el.getBoundingClientRect();
+  const drop = document.createElement('div');
+  drop.className = 'att-dropdown';
+  drop.id = 'att-drop';
+
+  // Position: prefer below, flip up if near bottom
+  let top = rect.bottom + 6;
+  let left = rect.left + rect.width/2 - 75;
+  if(top + 200 > window.innerHeight) top = rect.top - 210;
+  if(left < 4) left = 4;
+  if(left + 150 > window.innerWidth) left = window.innerWidth - 155;
+
+  drop.style.top = top + 'px';
+  drop.style.left = left + 'px';
+
+  drop.innerHTML = `
+    <div style="padding:6px 12px;font-size:0.72rem;font-weight:700;color:#888;border-bottom:1px solid #eee;text-transform:uppercase;letter-spacing:0.5px">Date ${day} — Mark As</div>
+    <div class="att-dropdown-item" onclick="markAtt('${classId}','${year}','${month}','${day}','${studentId}','P')"><span class="dot dot-P"></span>✅ Present</div>
+    <div class="att-dropdown-item" onclick="markAtt('${classId}','${year}','${month}','${day}','${studentId}','A')"><span class="dot dot-A"></span>❌ Absent</div>
+    <div class="att-dropdown-item" onclick="markAtt('${classId}','${year}','${month}','${day}','${studentId}','L')"><span class="dot dot-L"></span>📋 Leave</div>
+    <div class="att-dropdown-item" onclick="markAtt('${classId}','${year}','${month}','${day}','${studentId}','H')"><span class="dot dot-H"></span>🏖️ Holiday</div>
+    <div class="att-dropdown-item" onclick="markAtt('${classId}','${year}','${month}','${day}','${studentId}','')"><span class="dot dot-clear"></span>🗑 Clear</div>
+  `;
+  document.body.appendChild(drop);
+  openDropdown = drop;
+  el.dataset.open = '1';
+  setTimeout(() => document.addEventListener('click', closeDropdown, {once:true}), 10);
+  document.addEventListener('keydown', closeDropdownOnEsc);
+}
+
+function closeDropdown() {
+  if(openDropdown) {
+    // clear data-open on source el
+    document.querySelectorAll('[data-open]').forEach(e => delete e.dataset.open);
+    openDropdown.remove(); openDropdown = null;
+  }
+  document.removeEventListener('click', closeDropdown);
+  document.removeEventListener('keydown', closeDropdownOnEsc);
+}
+
+function closeDropdownOnEsc(e) {
+  if(e.key === 'Escape') closeDropdown();
+}
+
+function markAtt(classId, year, month, day, studentId, val) {
+  setAttVal(classId, parseInt(year), parseInt(month), parseInt(day), studentId, val);
+  const cell = document.getElementById(`dc_${studentId}_${day}`);
+  if(cell) {
+    cell.className = cell.className.replace(/\bval-\w+\b/g, '').replace(/\s+/g,' ').trim();
+    if(val) cell.classList.add(`val-${val}`);
+    cell.textContent = val || '·';
+  }
+  closeDropdown();
+}
+
+function shiftMonth(dir) {
+  const mEl = document.getElementById('att-month');
+  const yEl = document.getElementById('att-year');
+  let m = parseInt(mEl.value);
+  let y = parseInt(yEl.value);
+  m += dir;
+  if(m < 0) { m = 11; y--; }
+  if(m > 11) { m = 0; y++; }
+  // ensure year option exists
+  if(!yEl.querySelector(`option[value="${y}"]`)) {
+    const opt = document.createElement('option');
+    opt.value = y; opt.textContent = y;
+    yEl.appendChild(opt);
+  }
+  mEl.value = m; yEl.value = y;
+  loadAttStudents();
+}
+
+function markAll(status) {
+  const classId = document.getElementById('att-class').value;
+  const month = parseInt(document.getElementById('att-month').value);
+  const year = parseInt(document.getElementById('att-year').value);
+  if(!classId) { toast('❌ Select a class first'); return; }
+  const label = status === 'P' ? 'Present' : 'Leave';
+  if(!confirm(`Mark ALL students as ${label} for all working days this month?`)) return;
+  const students = DB.students.filter(s => s.classId === classId);
+  const days = getDaysInMonth(year, month);
+  const now = new Date(); now.setHours(0,0,0,0);
+  students.forEach(st => {
+    for(let d=1; d<=days; d++) {
+      const dow = getDayOfWeek(year, month, d);
+      const cellDate = new Date(year, month, d);
+      if(dow !== 0 && cellDate <= now) {
+        setAttVal(classId, year, month, d, st.id, status);
+      }
+    }
+  });
+  loadAttStudents();
+  toast(`✅ All marked as ${label}`);
+}
+
+// ======================================================
+// REPORT
+// ======================================================
+function generateReport() {
+  const schoolId = document.getElementById('rpt-school').value;
+  const classId = document.getElementById('rpt-class').value;
+  const month = parseInt(document.getElementById('rpt-month').value);
+  const year = parseInt(document.getElementById('rpt-year').value);
+  const prevMonth = parseInt(document.getElementById('rpt-prev-month').value);
+  // If previous month is greater than current month, it must be from the previous year
+  const prevYear = prevMonth > month ? year - 1 : year;
+
+  const sch = DB.schools.find(s => s.id === schoolId);
+  const cls = DB.classes.find(c => c.id === classId);
+  if(!sch || !cls) { toast('❌ Select school and class'); return; }
+  const students = DB.students.filter(s => s.classId === classId);
+  if(!students.length) { toast('❌ No students in this class'); return; }
+
+  // Update print header
+  document.getElementById('ph-school').textContent = sch.name + (sch.city ? ' — ' + sch.city : '');
+  document.getElementById('ph-class').textContent = `Class: ${cls.name}${cls.section?' - '+cls.section:''} | Month: ${MONTHS[month]} ${year} | Fee Rate: ₹${cls.fee||0}`;
+
+  const days = getDaysInMonth(year, month);
+  const prevDays = getDaysInMonth(prevYear, prevMonth);
+
+  // Working days (non-sunday)
+  let workingDays = 0;
+  for(let d=1; d<=days; d++) { if(getDayOfWeek(year, month, d) !== 0) workingDays++; }
+  let prevWorkingDays = 0;
+  for(let d=1; d<=prevDays; d++) { if(getDayOfWeek(prevYear, prevMonth, d) !== 0) prevWorkingDays++; }
+
+  // Build table
+  let html = `
+  <div class="card">
+    <div class="card-head no-print" style="justify-content:space-between">
+      <span>📊 Report: ${cls.name}${cls.section?' - '+cls.section:''} | ${MONTHS[month]} ${year}</span>
+      <button class="btn btn-sm btn-outline" style="color:#fff;border-color:rgba(255,255,255,0.4)" onclick="printReport()">🖨️ Print</button>
+    </div>
+    <div class="card-body" style="padding:12px">`;
+
+  // Stats row
+  const totalsData = computeTotals(students, classId, year, month, days);
+  const prevTotalsData = computeTotals(students, classId, prevYear, prevMonth, prevDays);
+
+  html += `<div class="stat-row no-print">
+    <div class="stat-card"><div class="num c-blue">${students.length}</div><div class="lbl">Total Students</div></div>
+    <div class="stat-card"><div class="num c-blue">${days}</div><div class="lbl">Total Days (${MONTHS[month]})</div></div>
+    <div class="stat-card"><div class="num">${workingDays}</div><div class="lbl">Working Days</div></div>
+    <div class="stat-card"><div class="num c-green">${totalsData.totalP}</div><div class="lbl">Total Present</div></div>
+    <div class="stat-card"><div class="num c-red">${totalsData.totalA}</div><div class="lbl">Total Absent</div></div>
+    <div class="stat-card"><div class="num c-orange">${totalsData.totalL}</div><div class="lbl">Total Leave</div></div>
+    <div class="stat-card"><div class="num c-blue">${totalsData.avgPct}%</div><div class="lbl">Avg Attendance</div></div>
+  </div>`;
+
+  // Main register table
+  html += `<div class="scroll-hint no-print">← Scroll horizontally to see all columns →</div>`;
+  html += `<div class="report-wrap"><table class="reg-table">`;
+  
+  // Header rows
+  html += `<thead>
+    <tr>
+      <th rowspan="2" style="min-width:36px">क्रम<br>S.N.</th>
+      <th rowspan="2" style="min-width:36px">S.R.<br>No</th>
+      <th rowspan="2" style="min-width:140px">छात्र का नाम<br>Name of Scholar</th>
+      <th rowspan="2" style="min-width:54px">शुल्क दर<br>Fee Rate</th>
+      <th colspan="${days}" style="background:#1a3a5c">${MONTHS[month]} ${year} — दिनांक / Date</th>
+      <th colspan="3" style="background:#1a4a2a">वर्तमान माह<br>Current Month</th>
+      <th colspan="3" style="background:#4a2a1a">गत माह<br>${MONTHS[prevMonth]} ${prevYear}</th>
+      <th colspan="3" style="background:#2a1a4a">सम्पूर्ण योग<br>Grand Total</th>
+      <th rowspan="2" style="min-width:60px">उपस्थिति %<br>Attendance %</th>
+      <th rowspan="2" style="min-width:60px">अभियोग<br>Remarks</th>
+    </tr>
+    <tr>`;
+  
+  for(let d=1; d<=days; d++) {
+    const dow = getDayOfWeek(year, month, d);
+    const isSun = dow === 0;
+    html += `<th style="min-width:26px;${isSun?'background:#4a2060':''}">${d}<br><span style="font-size:0.65rem">${['S','M','T','W','T','F','S'][dow]}</span></th>`;
+  }
+  
+  html += `
+      <th style="min-width:32px;background:#1a4a2a">P</th>
+      <th style="min-width:32px;background:#1a4a2a">A</th>
+      <th style="min-width:32px;background:#1a4a2a">L</th>
+      <th style="min-width:32px;background:#4a2a1a">P</th>
+      <th style="min-width:32px;background:#4a2a1a">A</th>
+      <th style="min-width:32px;background:#4a2a1a">L</th>
+      <th style="min-width:32px;background:#2a1a4a">P</th>
+      <th style="min-width:32px;background:#2a1a4a">A</th>
+      <th style="min-width:32px;background:#2a1a4a">L</th>
+    </tr>
+  </thead><tbody>`;
+
+  // Vertical totals per day
+  const dayP = new Array(days).fill(0);
+  const dayA = new Array(days).fill(0);
+
+  // Student rows
+  students.forEach((st, idx) => {
+    const cls2 = DB.classes.find(c => c.id === st.classId);
+    let curP=0, curA=0, curL=0;
+    let cells = '';
+    for(let d=1; d<=days; d++) {
+      const dow = getDayOfWeek(year, month, d);
+      const isSun = dow === 0;
+      let val = getAttVal(classId, year, month, d, st.id);
+      if(isSun && !val) val = 'S';
+      if(val === 'P') { curP++; dayP[d-1]++; }
+      if(val === 'A') { curA++; dayA[d-1]++; }
+      if(val === 'L') curL++;
+      const display = val || '';
+      cells += `<td class="${val||'blank'}">${display}</td>`;
+    }
+
+    // Prev month totals
+    let prevP=0, prevA=0, prevL=0;
+    for(let d=1; d<=prevDays; d++) {
+      const dow = getDayOfWeek(prevYear, prevMonth, d);
+      if(dow === 0) continue;
+      const val = getAttVal(classId, prevYear, prevMonth, d, st.id);
+      if(val==='P') prevP++;
+      if(val==='A') prevA++;
+      if(val==='L') prevL++;
+    }
+
+    const grandP = curP + prevP;
+    const grandA = curA + prevA;
+    const grandL = curL + prevL;
+    const totalWorking = curP + curA + curL;
+    const pct = totalWorking > 0 ? Math.round(curP/totalWorking*100) : 0;
+    const pctLow = pct < 75;
+    const pctMed = pct >= 75 && pct < 85;
+
+    html += `<tr>
+      <td class="col-roll">${idx+1}</td>
+      <td>${st.sr||'-'}</td>
+      <td class="col-name">${st.name}${st.father?'<br><span style="font-size:0.72rem;color:#888;font-weight:400">'+st.father+'</span>':''}</td>
+      <td>₹${cls2?cls2.fee||0:0}</td>
+      ${cells}
+      <td class="total-col">${curP}</td>
+      <td class="total-col">${curA}</td>
+      <td class="total-col">${curL}</td>
+      <td style="background:#fef0e7;font-weight:700">${prevP}</td>
+      <td style="background:#fef0e7;font-weight:700">${prevA}</td>
+      <td style="background:#fef0e7;font-weight:700">${prevL}</td>
+      <td style="background:#f0eeff;font-weight:700">${grandP}</td>
+      <td style="background:#f0eeff;font-weight:700">${grandA}</td>
+      <td style="background:#f0eeff;font-weight:700">${grandL}</td>
+      <td class="pct-col ${pctLow?'low':pctMed?'medium':''}">${pct}%</td>
+      <td></td>
+    </tr>`;
+  });
+
+  // Vertical totals row
+  html += `<tr style="background:#fffde7;font-weight:700">
+    <td colspan="4" style="text-align:right;font-weight:700;background:#fffde7">दैनिक योग / Daily Total ↓</td>`;
+  let grandDayP=0, grandDayA=0;
+  for(let d=1; d<=days; d++) {
+    const dow = getDayOfWeek(year, month, d);
+    const isSun = dow === 0;
+    if(isSun) {
+      html += `<td style="background:#f9ecff;color:#8e44ad">—</td>`;
+    } else {
+      grandDayP += dayP[d-1];
+      grandDayA += dayA[d-1];
+      html += `<td style="background:#e8f8f5;color:#1a5276;font-weight:700">${dayP[d-1]}<br><span style="color:#c0392b">${dayA[d-1]}</span></td>`;
+    }
+  }
+  html += `<td colspan="10" style="background:#fffde7"></td>`;
+  html += `</tr>`;
+
+  // Percentage row per day
+  html += `<tr style="background:#f8f9fa">
+    <td colspan="4" style="text-align:right;font-size:0.8rem;color:#555;background:#f0f0f0">उपस्थिति % / Att.%</td>`;
+  for(let d=1; d<=days; d++) {
+    const dow = getDayOfWeek(year, month, d);
+    if(dow === 0) { html += `<td style="background:#f9ecff">—</td>`; continue; }
+    const tot = dayP[d-1] + dayA[d-1];
+    const pct = tot > 0 ? Math.round(dayP[d-1]/tot*100) : 0;
+    const col = pct >= 75 ? '#27ae60' : '#e74c3c';
+    html += `<td style="font-size:0.72rem;font-weight:700;color:${col}">${pct}%</td>`;
+  }
+  html += `<td colspan="10"></td></tr>`;
+
+  html += `</tbody></table></div>`;
+  html += `</div></div>`;
+
+  document.getElementById('report-output').innerHTML = html;
+  toast('✅ Report generated!');
+  document.getElementById('report-output').scrollIntoView({behavior:'smooth'});
+}
+
+function computeTotals(students, classId, year, month, days) {
+  let totalP=0, totalA=0, totalL=0;
+  students.forEach(st => {
+    for(let d=1; d<=days; d++) {
+      const dow = getDayOfWeek(year, month, d);
+      if(dow===0) continue;
+      const val = getAttVal(classId, year, month, d, st.id);
+      if(val==='P') totalP++;
+      if(val==='A') totalA++;
+      if(val==='L') totalL++;
+    }
+  });
+  const tot = totalP + totalA + totalL;
+  const avgPct = tot > 0 ? Math.round(totalP/tot*100) : 0;
+  return { totalP, totalA, totalL, avgPct };
+}
+
+function printReport() {
+  generateReport();
+  setTimeout(() => window.print(), 400);
+}
+
+// ======================================================
+// DATA BACKUP & RESTORE
+// ======================================================
+function restoreData(input) {
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if(!data.schools || !data.classes || !data.students) throw new Error('Invalid format');
+      if(!confirm('This will REPLACE all current data with the backup. Continue?')) return;
+      DB = data;
+      if(!DB.attendance) DB.attendance = {};
+      saveDB();
+      fillSchoolSelects(['c-school','st-school','filter-school-st','att-school','rpt-school']);
+      fillStClasses(); fillAttClasses(); fillRptClasses();
+      renderSchools(); renderClasses(); renderStudents();
+      toast('✅ Data restored successfully!');
+    } catch(err) {
+      toast('❌ Invalid backup file');
+    }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+function exportData() {
+  const json = JSON.stringify(DB, null, 2);
+  const blob = new Blob([json], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const now = new Date();
+  const stamp = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  a.href = url; a.download = `vidyalaya-panjee-backup-${stamp}.json`;
+  a.click(); URL.revokeObjectURL(url);
+  toast('💾 Data backup downloaded!');
+}
+
+// ======================================================
+// INIT
+// ======================================================
+function init() {
+  fillMonthYearSelects();
+  renderSchools();
+  renderClasses();
+  fillSchoolSelects(['c-school','st-school','filter-school-st','att-school','rpt-school']);
+  fillStClasses();
+  fillAttClasses();
+  fillRptClasses();
+  renderStudents();
+  
+  // Sample data if empty
+  if(DB.schools.length === 0) {
+    DB.schools.push({ id: 's1', name: 'SHIV COMPUTER 22XXXX', city: 'Karanpur', board: 'UP Board' });
+    DB.classes.push({ id: 'c1', schoolId: 's1', name: 'Class 10', section: 'A', fee: 500 });
+    DB.students.push(
+      { id: 'st1', classId: 'c1', schoolId: 's1', roll: '1', name: 'Ravi Kumar Sharma', father: 'Ramesh Sharma', sr: 'SR001' },
+      { id: 'st2', classId: 'c1', schoolId: 's1', roll: '2', name: 'Priya Singh', father: 'Mahesh Singh', sr: 'SR002' },
+      { id: 'st3', classId: 'c1', schoolId: 's1', roll: '3', name: 'Ankit Verma', father: 'Suresh Verma', sr: 'SR003' },
+      { id: 'st4', classId: 'c1', schoolId: 's1', roll: '4', name: 'Sunita Gupta', father: 'Rakesh Gupta', sr: 'SR004' },
+      { id: 'st5', classId: 'c1', schoolId: 's1', roll: '5', name: 'Deepak Yadav', father: 'Vinod Yadav', sr: 'SR005' }
+    );
+    saveDB();
+    fillSchoolSelects(['c-school','st-school','filter-school-st','att-school','rpt-school']);
+    fillStClasses(); fillAttClasses(); fillRptClasses();
+    renderSchools(); renderClasses(); renderStudents();
+  }
+}
+init();
+</script>
+</body>
+</html>
