@@ -12,8 +12,8 @@
 :root {
   --ink: #1a1a2e;
   --paper: #fefdf8;
-  --ruled: #011a4a;
-  --accent: #c0392b;
+  --ruled: #4a1f01;
+  --accent: #18401a;
   --accent2: #2980b9;
   --present: #27ae60;
   --absent: #e74c3c;
@@ -21,8 +21,8 @@
   --sunday: #8e44ad;
   --header-bg: #0d624b;
   --row-alt: #f8f7f0;
-  --gold: #d4ac0d;
-  --shadow: rgba(238, 95, 95, 0.768);
+  --gold: #f70909;
+  --shadow: rgba(247, 13, 13, 0.768);
 }
 
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -30,13 +30,51 @@
 html { overflow-x: hidden; }
 
 body {
-  font-family: 'Rajdhani', 'Noto Sans Devanagari', sans-serif;
-  background: #e8e4d4;
-  background-image: repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(0,0,0,0.04) 28px);
-  min-height: 100vh;
-  max-width: 100vw;
-  overflow-x: hidden;
-  color: var(--ink);
+    font-family: 'Rajdhani', 'Noto Sans Devanagari', sans-serif;
+    background-color: #acfabe;
+    /* लाइन्स को बेस बैकग्राउंड में रखा है */
+    background-image: 
+        repeating-linear-gradient(39deg, transparent, transparent 27px, rgba(13, 92, 4, 0.608) 40px),
+        repeating-linear-gradient(129deg, transparent, transparent 27px, rgba(13, 92, 4, 0.608) 40px);
+    min-height: 100vh;
+    max-width: 100vw;
+    overflow-x: hidden;
+    color: var(--ink);
+    position: relative;
+}
+
+/* डॉट्स के लिए अलग लेयर */
+body::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* डॉट्स का पैटर्न और साइज */
+    background-image: radial-gradient(#f7170f 3px, transparent 3px);
+    background-size: 100px 100px; /* लाइन्स के साथ सिंक करने के लिए एडजस्टेड */
+    background-position: center;
+    z-index: -1;
+    /* एनिमे़शन लागू करना */
+    animation: pulseMove 10s ease-in-out infinite;
+    pointer-events: none;
+}
+
+/* पल्स और मूवमेंट एनिमे़शन */
+@keyframes pulseMove {
+    0% {
+        transform: scale(21) translate(0, 0);
+        opacity: 1.7;
+    }
+    50% {
+        transform: scale(2.2) translate(5px, 5px); /* हल्का सा स्थान बदलना */
+        opacity: 2;
+    }
+    100% {
+        transform: scale(1) translate(0, 0);
+        opacity: 0.7;
+    }
 }
 
 /* ===== NAV ===== */
@@ -78,35 +116,64 @@ body {
 @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
 
 .page-title {
-  font-size: 1.6rem; font-weight: 700; color: var(--header-bg);
+  font-size: 1.6rem; font-weight: 700; color: #040f65;
   border-left: 4px solid var(--accent);
   padding-left: 14px; margin-bottom: 24px;
   display: flex; align-items: center; gap: 12px;
 }
 
-/* ===== CARDS ===== */
+/* ===== GLASS PRISM CARDS ===== */
 .card {
-  background: var(--paper);
-  border: 4px solid var(--ruled);
-  border-radius: 6px;
-  box-shadow: 0 4px 14px var(--shadow);
-  overflow: hidden; margin-bottom: 24px;
+  /* पारदर्शी सफेद रंग और हल्का ब्लर इफेक्ट */
+  background: rgba(255, 255, 255, 0.033); 
+  backdrop-filter: blur(0%) saturate(180%);
+  -webkit-backdrop-filter: blur(0px) saturate(180%);
+  
+  /* प्रिज्म बॉर्डर इफेक्ट (हल्की सफेदी और चमक) */
+  border: 2px solid rgba(5, 218, 20, 0.415);
+  border-radius: 18px; /* ग्लास लुक के लिए थोडा ज्यादा राउंडेड */
+  
+  box-shadow: 0 8px 32px 0 rgba(241, 4, 4, 0.674);
+  overflow: hidden; 
+  margin-bottom: 24px;
 }
-#page-attendance .card { overflow: clip; border-radius: 6px; }
-#page-attendance .att-header { border-radius: 6px 6px 0 0; }
-#page-attendance #att-body { overflow: auto; border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; }
+
+#page-attendance .card { 
+  overflow: clip; 
+  border-radius: 12px; 
+}
+
 .card-head {
-  background: var(--header-bg);
-  color: #f4d10c; padding: 12px 20px;
-  font-size: 1rem; font-weight: 600;
-  display: flex; align-items: center; justify-content: space-between;
+  /* हेडर को थोड़ा गहरा पारदर्शी रखना ताकि टेक्स्ट साफ दिखे */
+  background: rgba(0, 0, 0, 0.2); 
+  backdrop-filter: blur(5px);
+  color: #d6059e; 
+  padding: 12px 20px;
+  font-size: 2rem; 
+  font-weight: 600;
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between;
+  border-bottom: 2px solid rgba(2, 159, 13, 0.1);
 }
-.card-body { padding: 20px; }
+
+.card-body { 
+  padding: 20px; 
+  background: transparent;
+}
+
+/* अटेंडेंस पेज के लिए विशेष सुधार */
+#page-attendance .att-header { border-radius: 12px 12px 0 0; }
+#page-attendance #att-body { 
+  overflow: auto; 
+  border-bottom-left-radius: 12px; 
+  border-bottom-right-radius: 12px; 
+}
 
 /* ===== FORMS ===== */
 .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 16px; }
 .form-group { display: flex; flex-direction: column; gap: 5px; }
-.form-group label { font-size: 0.82rem; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
+.form-group label { font-size: 1.82rem; font-weight: 600; color: #1f09e0; text-transform: uppercase; letter-spacing: 0.5px; }
 .form-group input, .form-group select {
   padding: 9px 12px; border: 1.5px solid #ccc;
   border-radius: 4px; font-family: inherit; font-size: 0.95rem;
@@ -138,7 +205,7 @@ body {
 .table-wrap { overflow-x: auto; overflow-y: auto; max-height: 480px; width: 100%; display: block; -webkit-overflow-scrolling: touch; }
 /* Sticky header inside scrollable table-wrap */
 .table-wrap thead th { position: sticky; top: 0; z-index: 5; }
-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+table { width: 100%; border-collapse: collapse; font-size: 1.88rem; }
 th {
   background: var(--header-bg); color: #f3c2c2;
   padding: 9px 8px; text-align: center;
